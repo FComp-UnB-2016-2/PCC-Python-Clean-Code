@@ -8,6 +8,7 @@ digit [0-9]
 integer {digit}+
 exponant [eE][+-]?{integer}
 real {integer}("."{integer})?{exponant}?
+variable ([a-zA-Z_][a-zA-Z0-9_]*)
 
 %%
 
@@ -21,7 +22,7 @@ return(NUMBER);
 "import" return(IMPORT);
 "." return(POINT);
 "class" return(CLASS);
-([a-zA-Z_][a-zA-Z0-9_]*) return(VARIABLE);
+{variable} return(VARIABLE);
 
 %%
 
