@@ -1,7 +1,7 @@
 %{
-#include "global.h"
 #include "sintatico.h"
 #include <stdlib.h>
+#define YYSTYPE char *
 %}
 white [ \t]+
 digit [0-9]
@@ -13,16 +13,13 @@ variable ([a-zA-Z_][a-zA-Z0-9_]*)
 %%
 
 {white} { /* We ignore white characters */ }
-{real} {
-yylval=atof(yytext);
-return(NUMBER);
-}
 
 "from" return(FROM);
 "import" return(IMPORT);
-"." return(POINT);
+"." return(POINT); 
 "class" return(CLASS);
-{variable} return(VARIABLE);
+{variable} { yylval.strval = strdup(yytext); return(VARIABLE); }
+"\n" return(END);
 
 %%
 
