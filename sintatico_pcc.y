@@ -36,9 +36,12 @@ void write_to_file(FILE* file, const char* content) {
     char* strval;
 }
 
-%token <strval> VARIABLE
-%token FROM CLASS IMPORT POINT 
-%token END
+%token <strval> FROM VARIABLE IMPORT CLASS END MULTIPLE_BLANK_LINES FUNCTION_DECORATOR
+%token <dval> NUMBER
+
+%type <strval> MultipleLine
+
+%start Input
 
 
 %start Input
@@ -46,19 +49,22 @@ void write_to_file(FILE* file, const char* content) {
 %%
 
 Input:
-   /* Empty */
-   | Input Line {
-      close_output_file();    
-   }
+  /* Empty */
+   | Input MultipleLine
    ;
-Line:
-   END
-   | Expression END
-   ;
-Expression:
-   VARIABLE { open_output_file("teste"); write_to_file(output_file, $1);  }
-   ;
-
+MultipleLine:
+  END
+  | FUNCTION_DECORATOR END { printf("Resultado: DECORATOR "); }
+  | LineImport END END LineClass { printf("Resultado: LineImport END END END LineClass"); }
+  | MULTIPLE_BLANK_LINES { printf("Resultado: END END"); }
+  ;
+LineImport:
+  IMPORT VARIABLE
+  | FROM VARIABLE IMPORT VARIABLE
+  ;
+LineClass:
+  CLASS VARIABLE
+  ;
 %%
 
 int yyerror(char *s) {
