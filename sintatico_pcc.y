@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 FILE* output_file = NULL;
 
@@ -28,6 +29,33 @@ void write_to_file(FILE* file, const char* content) {
         exit(0);
     }
 }
+
+void write_body_import(FILE* file, const char* content) {
+    if (file != NULL) {
+      fprintf(file, "import %s\n", content);
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
+
+void write_body_from(FILE* file, const char* content1, const char* content2) {
+    if (file != NULL) {
+      fprintf(file, "from %s import %s\n", content1 , content2);
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
+
+void write_body_class(FILE* file, const char* content1, const char* content2) {
+    if (file != NULL) {
+      fprintf(file, "class %s(%s):\n", content1 , content2);
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
 %}
 
 %union {
@@ -38,32 +66,30 @@ void write_to_file(FILE* file, const char* content) {
 
 %token <strval> FROM VARIABLE IMPORT CLASS END MULTIPLE_BLANK_LINES FUNCTION_DECORATOR
 %token <dval> NUMBER
+%token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS
 
-%type <strval> MultipleLine
-
-%start Input
-
+%type <strval> MultipleLine LineImport LineClass
 
 %start Input
 
 %%
 
 Input:
-  /* Empty */
-   | Input MultipleLine
-   ;
+  { open_output_file("saida"); }
+  | Input MultipleLine { return(1); }
+  ;
 MultipleLine:
   END
   | FUNCTION_DECORATOR END { printf("Resultado: DECORATOR "); }
-  | LineImport END END LineClass { printf("Resultado: LineImport END END END LineClass"); }
-  | MULTIPLE_BLANK_LINES { printf("Resultado: END END"); }
+  | LineImport END END { write_to_file(output_file, "\n\n"); } LineClass 
+  | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n"); } LineClass 
   ;
 LineImport:
-  IMPORT VARIABLE
-  | FROM VARIABLE IMPORT VARIABLE
+  IMPORT VARIABLE { write_body_import(output_file, $2);  }
+  | FROM VARIABLE IMPORT VARIABLE { write_body_from(output_file, $2, $4);  }
   ;
 LineClass:
-  CLASS VARIABLE
+  CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
 %%
 

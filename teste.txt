@@ -1,3 +1,0 @@
-from bla import bla2
-
-class bla3lkjlk

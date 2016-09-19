@@ -24,6 +24,9 @@ function_decorator ([@][a-z]+)
 {real} {yylval.dval = atof(yytext); return(NUMBER);}
 {multiple_blank_lines} {return(MULTIPLE_BLANK_LINES);}
 "\n" return(END);
+"(" return(LEFT_PARENTHESES);
+")" return(RIGHT_PARENTHESES);
+":" return(TWO_POINTS);
 
 %%
 
