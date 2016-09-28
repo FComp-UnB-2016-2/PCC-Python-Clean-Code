@@ -32,7 +32,7 @@ void write_to_file(FILE* file, const char* content) {
 
 void write_body_import(FILE* file, const char* content) {
     if (file != NULL) {
-      fprintf(file, "import %s\n", content);
+      fprintf(file, "import %s", content);
     } else {
         //Log_error("Não foi possível abrir o arquivo!\n");
         exit(0);
@@ -64,7 +64,7 @@ void write_body_class(FILE* file, const char* content1, const char* content2) {
     char* strval;
 }
 
-%token <strval> FROM VARIABLE IMPORT CLASS END MULTIPLE_BLANK_LINES FUNCTION_DECORATOR
+%token <strval> FROM VARIABLE IMPORT CLASS END MULTIPLE_BLANK_LINES FUNCTION_DECORATOR TAB
 %token <dval> NUMBER
 %token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS
 
@@ -81,15 +81,17 @@ Input:
 MultipleLine:
   END
   | FUNCTION_DECORATOR END { printf("Resultado: DECORATOR "); }
-  | LineImport END END { write_to_file(output_file, "\n\n"); } LineClass 
-  | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n"); } LineClass 
+  | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 
+  | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
+  | TAB { write_to_file(output_file, "\t");}
   ;
 LineImport:
   IMPORT VARIABLE { write_body_import(output_file, $2);  }
   | FROM VARIABLE IMPORT VARIABLE { write_body_from(output_file, $2, $4);  }
   ;
 LineClass:
-  CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
+  CLASS VARIABLE LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, "");  }
+  | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
 %%
 

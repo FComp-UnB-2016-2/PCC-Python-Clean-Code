@@ -12,6 +12,7 @@ real {integer}("."{integer})?{exponant}?
 variable ([a-zA-Z_][a-zA-Z0-9_]*)
 multiple_blank_lines ([\n]){3,}
 function_decorator ([@][a-z]+)
+tab ([\s]){4}
 
 %%
 
@@ -23,6 +24,7 @@ function_decorator ([@][a-z]+)
 {variable} {yylval.strval = strdup(yytext); return(VARIABLE);}
 {real} {yylval.dval = atof(yytext); return(NUMBER);}
 {multiple_blank_lines} {return(MULTIPLE_BLANK_LINES);}
+{tab} return(TAB);
 "\n" return(END);
 "(" return(LEFT_PARENTHESES);
 ")" return(RIGHT_PARENTHESES);
