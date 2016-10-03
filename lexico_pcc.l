@@ -4,6 +4,8 @@
 #define YYSTYPE char *
 %}
 
+%option noyywrap
+
 white [ \t]+
 digit [0-9]
 integer {digit}+
@@ -19,7 +21,7 @@ line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
 
 %%
 
-"fim" { return (END_OF_FILE);}
+<<EOF>> { return (END_OF_FILE);}
 {line_start_function} {yylval.strval = strdup(yytext); return(LINE_START_FUNCTION);}
 {tab} {return(TAB);}
 {white} { /* We ignore white characters */ }
@@ -36,7 +38,3 @@ line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
 ":" return(TWO_POINTS);
 
 %%
-
-yywrap () {
-return 0;
-}
