@@ -88,7 +88,7 @@ Input:
   | Input MultipleLine { }
   ;
 MultipleLine:
-  END_OF_FILE { close_output_file(output_file); return(1); }
+  END_OF_FILE { close_output_file(output_file); return(0); }
   | END { write_to_file(output_file, "acabou");}
   | FUNCTION_DECORATOR END { printf("Resultado: DECORATOR "); }
   | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 

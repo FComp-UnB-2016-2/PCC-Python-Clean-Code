@@ -7,4 +7,4 @@ pcc: lexico_pcc.l sintatico_pcc.y
 	gcc -o pcc sintatico.c lexico.c
 
 clean:
-	rm lexico.* sintatico.* pcc
+	rm lexico.* sintatico.* pcc saida.txt
