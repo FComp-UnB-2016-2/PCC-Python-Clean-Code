@@ -25,7 +25,7 @@ line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
 {line_start_function} {yylval.strval = strdup(yytext); return(LINE_START_FUNCTION);}
 {tab} {return(TAB);}
 {white} { /* We ignore white characters */ }
-{function_decorator} {return(FUNCTION_DECORATOR);}
+{function_decorator} {yylval.strval = strdup(yytext); return(FUNCTION_DECORATOR);}
 "from" { yylval.strval = strdup(yytext); return(FROM);}
 "import" { yylval.strval = strdup(yytext); return(IMPORT);}
 "class" { yylval.strval = strdup(yytext); return(CLASS);}

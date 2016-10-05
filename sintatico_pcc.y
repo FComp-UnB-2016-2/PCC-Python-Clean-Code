@@ -65,6 +65,15 @@ void write_body_fuction(FILE* file, const char* content) {
         exit(0);
     }
 }
+
+void write_body_decorator(FILE* file, const char* content, const char* content2) {
+    if (file != NULL) {
+      fprintf(file, "\n\n\t%s\n\t%s", content, content2);
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
 %}
 
 %union {
@@ -89,8 +98,9 @@ Input:
   ;
 MultipleLine:
   END_OF_FILE { close_output_file(output_file); return(0); }
-  | END { write_to_file(output_file, "acabou");}
-  | FUNCTION_DECORATOR END { printf("Resultado: DECORATOR "); }
+  | END {write_to_file(output_file, "");}
+  | END TAB FUNCTION_DECORATOR END END TAB LINE_START_FUNCTION{ write_body_decorator(output_file, $3, $7);}
+  | LineImport END { write_to_file(output_file, "\n"); }
   | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 
   | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
   | END TAB LINE_START_FUNCTION {write_body_fuction(output_file, $3);}
