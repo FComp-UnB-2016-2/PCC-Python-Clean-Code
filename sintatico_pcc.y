@@ -74,6 +74,15 @@ void write_body_decorator(FILE* file, const char* content, const char* content2)
         exit(0);
     }
 }
+
+void write_atribution_line(FILE* file, const char* content, const char* content2) {
+    if (file != NULL) {
+      fprintf(file, "\n%s = %s", content, content2);
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
 %}
 
 %union {
@@ -82,11 +91,11 @@ void write_body_decorator(FILE* file, const char* content, const char* content2)
     char* strval;
 }
 
-%token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION 
+%token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END
 %token <dval> NUMBER
-%token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS END_OF_FILE TAB MULTIPLE_BLANK_LINES END
+%token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS END_OF_FILE TAB MULTIPLE_BLANK_LINES  EQUALS
 
-%type <strval> MultipleLine LineImport LineClass
+%type <strval> MultipleLine LineImport LineClass GeneralLine
 
 %start Input
 
@@ -98,20 +107,23 @@ Input:
   ;
 MultipleLine:
   END_OF_FILE { close_output_file(output_file); return(0); }
-  | END {write_to_file(output_file, "");}
-  | END TAB FUNCTION_DECORATOR END END TAB LINE_START_FUNCTION{ write_body_decorator(output_file, $3, $7);}
+  | END { write_to_file(output_file, "");}
+  | END TAB FUNCTION_DECORATOR END END TAB LINE_START_FUNCTION END { write_body_decorator(output_file, $3, $7);} GeneralLine
   | LineImport END { write_to_file(output_file, "\n"); }
   | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 
   | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
-  | END TAB LINE_START_FUNCTION {write_body_fuction(output_file, $3);}
+  | END TAB LINE_START_FUNCTION END { write_body_fuction(output_file, $3); } GeneralLine 
   ;
 LineImport:
   IMPORT VARIABLE { write_body_import(output_file, $2);  }
-  | FROM VARIABLE IMPORT VARIABLE { write_body_from(output_file, $2, $4);  }
+  | FROM VARIABLE IMPORT VARIABLE { write_body_from(output_file, $2, $4); }
   ;
 LineClass:
   CLASS VARIABLE LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, "");  }
   | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
+  ;
+GeneralLine:
+  VARIABLE EQUALS VARIABLE { write_atribution_line(output_file, $1, $3); }
   ;
 %%
 

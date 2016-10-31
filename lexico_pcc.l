@@ -32,9 +32,10 @@ line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
 {variable} {yylval.strval = strdup(yytext); return(VARIABLE);}
 {real} {yylval.dval = atof(yytext); return(NUMBER);}
 {multiple_blank_lines} {return(MULTIPLE_BLANK_LINES);}
-"\n" return(END);
+"\n" {yylval.strval = strdup(yytext); return(END);}
 "(" return(LEFT_PARENTHESES);
 ")" return(RIGHT_PARENTHESES);
 ":" return(TWO_POINTS);
+"=" return(EQUALS);
 
 %%
