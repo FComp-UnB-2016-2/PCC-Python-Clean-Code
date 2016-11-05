@@ -83,6 +83,32 @@ void write_atribution_line(FILE* file, const char* content, const char* content2
         exit(0);
     }
 }
+
+void write_conditional_line(FILE* file, const char* content, const int option) {
+    if (file != NULL) {
+      switch (option) {
+        case 0:
+          fprintf(file, "\nif %s:", content);
+          break;
+        case 1:
+          fprintf(file, "\nif(%s):", content);
+          break;
+      }
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
+
+void write_compare_conditional_line(FILE* file, const char* content, const char* content2, const char* content3) {
+    if (file != NULL) {
+      fprintf(file, "%s %s %s", content, content2, content3);
+    } else {
+        //Log_error("Não foi possível abrir o arquivo!\n");
+        exit(0);
+    }
+}
+
 %}
 
 %union {
@@ -91,11 +117,11 @@ void write_atribution_line(FILE* file, const char* content, const char* content2
     char* strval;
 }
 
-%token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END
+%token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END IF EQUALS MAJOR MINUS MAJOR_EQUALS MINUS_EQUALS
 %token <dval> NUMBER
-%token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS END_OF_FILE TAB MULTIPLE_BLANK_LINES  EQUALS
+%token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS END_OF_FILE TAB MULTIPLE_BLANK_LINES
 
-%type <strval> MultipleLine LineImport LineClass GeneralLine
+%type <strval> MultipleLine LineImport LineClass GeneralLine LineIf LineOperator
 
 %start Input
 
@@ -112,7 +138,9 @@ MultipleLine:
   | LineImport END { write_to_file(output_file, "\n"); }
   | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 
   | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
-  | END TAB LINE_START_FUNCTION END { write_body_fuction(output_file, $3); } GeneralLine 
+  | END TAB LINE_START_FUNCTION END { write_body_fuction(output_file, $3); }
+  | GeneralLine 
+  | LineOperator END
   ;
 LineImport:
   IMPORT VARIABLE { write_body_import(output_file, $2);  }
@@ -123,8 +151,20 @@ LineClass:
   | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
 GeneralLine:
-  VARIABLE EQUALS VARIABLE { write_atribution_line(output_file, $1, $3); }
+  LineIf
   ;
+
+LineIf:
+  IF VARIABLE TWO_POINTS { write_conditional_line(output_file, $2, 0); }
+  | IF LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_conditional_line(output_file, $3, 1); }
+  | IF LineOperator TWO_POINTS
+  | IF LEFT_PARENTHESES LineOperator { write_conditional_line(output_file, $3, 1); } RIGHT_PARENTHESES TWO_POINTS
+  ;
+
+LineOperator:
+  VARIABLE EQUALS VARIABLE { write_compare_conditional_line(output_file, $1, $2, $3); }
+  ;
+
 %%
 
 int yyerror(char *s) {
