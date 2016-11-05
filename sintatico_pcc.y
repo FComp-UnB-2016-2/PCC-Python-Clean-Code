@@ -100,9 +100,16 @@ void write_conditional_line(FILE* file, const char* content, const int option) {
     }
 }
 
-void write_compare_conditional_line(FILE* file, const char* content, const char* content2, const char* content3) {
+void write_compare_conditional_line(FILE* file, const char* content, const char* content2, const char* content3, const int option) {
     if (file != NULL) {
-      fprintf(file, "%s %s %s", content, content2, content3);
+      switch (option) {
+        case 0:
+            fprintf(file, "\nif %s %s %s:", content, content2, content3);
+            break;
+          case 1:
+            fprintf(file, "\nif(%s %s %s):", content, content2, content3);
+            break;
+      }
     } else {
         //Log_error("Não foi possível abrir o arquivo!\n");
         exit(0);
@@ -121,7 +128,7 @@ void write_compare_conditional_line(FILE* file, const char* content, const char*
 %token <dval> NUMBER
 %token LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS END_OF_FILE TAB MULTIPLE_BLANK_LINES
 
-%type <strval> MultipleLine LineImport LineClass GeneralLine LineIf LineOperator
+%type <strval> MultipleLine LineImport LineClass GeneralLine LineIf
 
 %start Input
 
@@ -140,7 +147,6 @@ MultipleLine:
   | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
   | END TAB LINE_START_FUNCTION END { write_body_fuction(output_file, $3); }
   | GeneralLine 
-  | LineOperator END
   ;
 LineImport:
   IMPORT VARIABLE { write_body_import(output_file, $2);  }
@@ -157,12 +163,16 @@ GeneralLine:
 LineIf:
   IF VARIABLE TWO_POINTS { write_conditional_line(output_file, $2, 0); }
   | IF LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_conditional_line(output_file, $3, 1); }
-  | IF LineOperator TWO_POINTS
-  | IF LEFT_PARENTHESES LineOperator { write_conditional_line(output_file, $3, 1); } RIGHT_PARENTHESES TWO_POINTS
-  ;
-
-LineOperator:
-  VARIABLE EQUALS VARIABLE { write_compare_conditional_line(output_file, $1, $2, $3); }
+  | IF VARIABLE EQUALS VARIABLE TWO_POINTS { write_compare_conditional_line(output_file, $2, $3, $4, 0); }
+  | IF VARIABLE MAJOR VARIABLE TWO_POINTS { write_compare_conditional_line(output_file, $2, $3, $4, 0); }
+  | IF VARIABLE MINUS VARIABLE TWO_POINTS { write_compare_conditional_line(output_file, $2, $3, $4, 0); }
+  | IF VARIABLE MAJOR_EQUALS VARIABLE TWO_POINTS { write_compare_conditional_line(output_file, $2, $3, $4, 0); }
+  | IF VARIABLE MINUS_EQUALS VARIABLE TWO_POINTS { write_compare_conditional_line(output_file, $2, $3, $4, 0); }
+  | IF LEFT_PARENTHESES VARIABLE EQUALS VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_compare_conditional_line(output_file, $3, $4, $5, 1); }
+  | IF LEFT_PARENTHESES VARIABLE MAJOR VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_compare_conditional_line(output_file, $3, $4, $5, 1); }
+  | IF LEFT_PARENTHESES VARIABLE MINUS VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_compare_conditional_line(output_file, $3, $4, $5, 1); }
+  | IF LEFT_PARENTHESES VARIABLE MAJOR_EQUALS VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_compare_conditional_line(output_file, $3, $4, $5, 1); }
+  | IF LEFT_PARENTHESES VARIABLE MINUS_EQUALS VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_compare_conditional_line(output_file, $3, $4, $5, 1); }
   ;
 
 %%
