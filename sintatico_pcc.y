@@ -76,56 +76,44 @@ void write_body_decorator(FILE* file, const char* content, const char* content2)
     }
 }
 
-void write_loop_line(FILE* file, const char* content, const char* content2) {
+char* return_loop_line(char* content, char* content2) {
+    return ("for %s in %s:", content, content2);
+}
+
+void write_atribution_line(FILE* file, const char* content, const char* content2) {
     if (file != NULL) {
-      fprintf(file, "for %s in %s:", content, content2);
+        fprintf(file, "%s = %s", content, content2);
     } else {
         //Log_error("Não foi possível abrir o arquivo!\n");
         exit(0);
     }
 }
 
-void write_atribution_line(FILE* file, const char* content, const char* content2) {
-     if (file != NULL) {
-       fprintf(file, "%s = %s", content, content2);
-     } else {
-         //Log_error("Não foi possível abrir o arquivo!\n");
-         exit(0);
-     }
- }
-
- void write_function_line(FILE* file, const char* content, const char* content2) {
-     if (file != NULL) {
-       fprintf(file, "%s(%s)", content, content2);
-     } else {
-         //Log_error("Não foi possível abrir o arquivo!\n");
-         exit(0);
-     }
- }
-
-void write_conditional_line(FILE* file, const char* content, const int option) {
+void write_function_line(FILE* file, const char* content, const char* content2) {
     if (file != NULL) {
-      switch (option) {
-        case 0:
-          fprintf(file, "if %s:", content);
-          break;
-        case 1:
-          fprintf(file, "if(%s):", content);
-          break;
-        case 2:
-          fprintf(file, "elif %s:", content);
-          break;
-        case 3:
-          fprintf(file, "elif(%s):", content);
-          break;
-        case 4:
-          fprintf(file, "else:");
-          break;
-      }
+        fprintf(file, "%s(%s)", content, content2);
     } else {
         //Log_error("Não foi possível abrir o arquivo!\n");
         exit(0);
     }
+}
+
+char* return_conditional_line(char* content, const int option) {
+    switch (option) {
+        case 0:
+            return ("if %s:", content);
+            break;
+        case 1:
+            return ("if (%s):", content);
+            break;
+        case 2:
+            return ("elif %s:", content);
+            break;
+        case 3:
+            return ("elif(%s):", content);
+            break;
+        case 4:
+            return ("else:");
 }
 
 void strrep(char *str, char old, char new)  {
@@ -152,7 +140,7 @@ void strrep(char *str, char old, char new)  {
 %token <dval> NUMBER
 %token END_OF_FILE MULTIPLE_TABS MULTIPLE_BLANK_LINES
 
-%type <strval> MultipleLine LineImport LineClass CodeBlock LineIf LineOperator LineFor LineAtribution LineFunction Parameters FunctionParameters
+%type <strval> MultipleLine LineImport LineClass CodeBlock LineIf LineIdentation LineOperator LineFor LineAtribution LineFunction Parameters FunctionParameters
 %type <strval> LineStartFunction
 
 %start Input
@@ -186,18 +174,23 @@ LineClass:
   | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
 CodeBlock:
-  MULTIPLE_TABS LineIf END LineAtribution {write_to_file(output_file, "TAB LINHA IF ");}
+  LineIdentation END LineAtribution { write_to_file(output_file, "TAB LINHA IF ");}
   | LineAtribution {write_to_file(output_file, "\n\t\t");}
   ;
+LineIdentation:
+  LineIf
+  | LineFor
+  | LineFunction
+  ;
 LineIf:
-  IF LineOperator TWO_POINTS { write_conditional_line(output_file, $2, 0); }
-  | IF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { write_conditional_line(output_file, $3, 1); }
-  | ELIF LineOperator TWO_POINTS { write_conditional_line(output_file, $2, 2); }
-  | ELIF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { write_conditional_line(output_file, $3, 3); }
-  | ELSE  TWO_POINTS{ write_conditional_line(output_file, "", 4); }
+  IF LineOperator TWO_POINTS { return_conditional_line($2, 0); }
+  | IF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { return_conditional_line($3, 1); }
+  | ELIF LineOperator TWO_POINTS { return_conditional_line($2, 2); }
+  | ELIF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { return_conditional_line($3, 3); }
+  | ELSE TWO_POINTS { return_conditional_line("", 4); }
   ;
 LineFor:
-  FOR VARIABLE IN VARIABLE TWO_POINTS { write_loop_line(output_file, $2, $4);}
+  FOR VARIABLE IN VARIABLE TWO_POINTS {}
   ;
 LineAtribution:
   VARIABLE EQUALS VARIABLE { write_atribution_line(output_file, $1, $3);}

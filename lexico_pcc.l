@@ -11,7 +11,7 @@ digit [0-9]
 integer {digit}+
 exponant [eE][+-]?{integer}
 real {integer}("."{integer})?{exponant}?
-variable ([a-zA-Z_][a-zA-Z0-9_]*.)
+variable ([a-zA-Z_][a-zA-Z0-9_]*)
 multiple_blank_lines ([\n]){3,}
 function_decorator ([@][a-z]+)
 multiple_tabs ([\t]*)
