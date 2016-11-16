@@ -6,6 +6,7 @@
 #include <string.h>
 
 FILE* output_file = NULL;
+int number_identation = 1;
 
 void open_output_file(char* file_name) {
     if (!output_file) {
@@ -149,10 +150,10 @@ void strrep(char *str, char old, char new)  {
 %token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END IF EQUALS MAJOR MINUS MAJOR_EQUALS MINUS_EQUALS
 %token <strval> EQUALS_EQUALS ELIF ELSE FOR IN ADD_AND ADD SUB MULT DIV MODULUS EXP COMMA LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS DOT
 %token <dval> NUMBER
-%token END_OF_FILE TAB MULTIPLE_BLANK_LINES
+%token END_OF_FILE MULTIPLE_TABS MULTIPLE_BLANK_LINES
 
-%type <strval> MultipleLine LineImport LineClass GeneralLine LineIf LineOperator LineFor LineAtribution LineFunction Parameters FunctionParameters
-%type <strval> LineStartFunction 
+%type <strval> MultipleLine LineImport LineClass CodeBlock LineIf LineOperator LineFor LineAtribution LineFunction Parameters FunctionParameters
+%type <strval> LineStartFunction
 
 %start Input
 
@@ -165,16 +166,16 @@ Input:
 
 MultipleLine:
   END_OF_FILE { close_output_file(output_file); return(0); }
-  | END { write_to_file(output_file, "");}
   | LineImport END { write_to_file(output_file, "\n"); }
   | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 
   | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
   | LineStartFunction {write_to_file(output_file, "\n\t\t");}
-  | GeneralLine {write_to_file(output_file, "\n\t\t");}
+  | CodeBlock { }
+  | END { write_to_file(output_file, "\n");}
   ;
 LineStartFunction:
-  END TAB LINE_START_FUNCTION END { write_body_fuction(output_file, $3); }
-  | END TAB FUNCTION_DECORATOR END END TAB LINE_START_FUNCTION { write_body_decorator(output_file, $3, $7);}
+  END MULTIPLE_TABS LINE_START_FUNCTION END { write_body_fuction(output_file, $3); }
+  | END MULTIPLE_TABS FUNCTION_DECORATOR END END MULTIPLE_TABS LINE_START_FUNCTION { write_body_decorator(output_file, $3, $7);}
   ;
 LineImport:
   IMPORT VARIABLE { write_body_import(output_file, $2);  }
@@ -184,10 +185,9 @@ LineClass:
   CLASS VARIABLE LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, "");  }
   | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
-GeneralLine:
-  LineIf
-  | LineFor
-  | LineAtribution
+CodeBlock:
+  MULTIPLE_TABS LineIf END LineAtribution {write_to_file(output_file, "TAB LINHA IF ");}
+  | LineAtribution {write_to_file(output_file, "\n\t\t");}
   ;
 LineIf:
   IF LineOperator TWO_POINTS { write_conditional_line(output_file, $2, 0); }
@@ -202,6 +202,7 @@ LineFor:
 LineAtribution:
   VARIABLE EQUALS VARIABLE { write_atribution_line(output_file, $1, $3);}
   | VARIABLE EQUALS LineFunction {write_atribution_line(output_file, $1, $3); }
+  | VARIABLE EQUALS VARIABLE DOT FunctionParameters LineFunction
   ;
 LineFunction:
   VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES {strcat($$, $3); strcat($$, $4); *$3 = '\0'; strcat($3, "(");}
@@ -213,6 +214,7 @@ FunctionParameters:
 Parameters:
   VARIABLE
   | VARIABLE COMMA {strcat($$, $2); strcat($$, " ");}
+  | VARIABLE DOT{strcat($$, $2);}
   ;
 LineOperator:
   VARIABLE

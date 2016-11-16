@@ -14,7 +14,7 @@ real {integer}("."{integer})?{exponant}?
 variable ([a-zA-Z_][a-zA-Z0-9_]*.)
 multiple_blank_lines ([\n]){3,}
 function_decorator ([@][a-z]+)
-tab ([\t])
+multiple_tabs ([\t]*)
 word ([a-zA-Z]+)
 space [ ]
 line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
@@ -23,7 +23,7 @@ line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
 
 <<EOF>> { return (END_OF_FILE);}
 {line_start_function} {yylval.strval = strdup(yytext); return(LINE_START_FUNCTION);}
-{tab} {return(TAB);}
+{multiple_tabs} {return(MULTIPLE_TABS);}
 {white} { /* We ignore white characters */ }
 {function_decorator} {yylval.strval = strdup(yytext); return(FUNCTION_DECORATOR);}
 "from" { yylval.strval = strdup(yytext); return(FROM);}
