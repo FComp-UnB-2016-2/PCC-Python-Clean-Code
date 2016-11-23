@@ -6,7 +6,7 @@
 #include <string.h>
 
 FILE* output_file = NULL;
-int number_identation = 1;
+int number_identation = 0;
 
 void open_output_file(char* file_name) {
     if (!output_file) {
@@ -80,13 +80,8 @@ char* return_loop_line(char* content, char* content2) {
     return ("for %s in %s:", content, content2);
 }
 
-void write_atribution_line(FILE* file, const char* content, const char* content2) {
-    if (file != NULL) {
-        fprintf(file, "%s = %s", content, content2);
-    } else {
-        //Log_error("Não foi possível abrir o arquivo!\n");
-        exit(0);
-    }
+char* return_atribution_line(char* content, char* content2) {
+    return ("%s = %s", content, content2);
 }
 
 void write_function_line(FILE* file, const char* content, const char* content2) {
@@ -101,7 +96,8 @@ void write_function_line(FILE* file, const char* content, const char* content2) 
 char* return_conditional_line(char* content, const int option) {
     switch (option) {
         case 0:
-            return ("if %s:", content);
+            strcat(content, "if ");
+            return content;
             break;
         case 1:
             return ("if (%s):", content);
@@ -114,6 +110,7 @@ char* return_conditional_line(char* content, const int option) {
             break;
         case 4:
             return ("else:");
+    }
 }
 
 void strrep(char *str, char old, char new)  {
@@ -127,6 +124,35 @@ void strrep(char *str, char old, char new)  {
     }
 }
 
+void calculate_tabs(char *tabs) {
+    number_identation = 0;
+    char *pos;
+    while (1)  {
+        pos = strchr(tabs, '\t');
+        if (pos == NULL)  {
+            break;
+        }
+        number_identation++;
+        *pos = 'x';
+    }
+}
+
+void write_tabs(FILE* file, int inside_block) {
+    int counter = 0;
+    if (inside_block == 1) {
+        number_identation++;
+    }
+
+    for(counter = 0; counter < number_identation ; counter++) {
+      if (file != NULL) {
+        fprintf(file, "\t");
+      } else {
+          //Log_error("Não foi possível abrir o arquivo!\n");
+          exit(0);
+      }
+    }
+}
+
 %}
 
 %union {
@@ -135,10 +161,10 @@ void strrep(char *str, char old, char new)  {
     char* strval;
 }
 
-%token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END IF EQUALS MAJOR MINUS MAJOR_EQUALS MINUS_EQUALS
+%token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END IF EQUALS MAJOR MINUS MAJOR_EQUALS MINUS_EQUALS MULTIPLE_TABS
 %token <strval> EQUALS_EQUALS ELIF ELSE FOR IN ADD_AND ADD SUB MULT DIV MODULUS EXP COMMA LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS DOT
 %token <dval> NUMBER
-%token END_OF_FILE MULTIPLE_TABS MULTIPLE_BLANK_LINES
+%token END_OF_FILE MULTIPLE_BLANK_LINES
 
 %type <strval> MultipleLine LineImport LineClass CodeBlock LineIf LineIdentation LineOperator LineFor LineAtribution LineFunction Parameters FunctionParameters
 %type <strval> LineStartFunction
@@ -174,17 +200,17 @@ LineClass:
   | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
 CodeBlock:
-  LineIdentation END LineAtribution { write_to_file(output_file, "TAB LINHA IF ");}
-  | LineAtribution {write_to_file(output_file, "\n\t\t");}
+  LineIdentation END CodeBlock {  write_tabs(output_file, 0); write_to_file(output_file, $1); write_to_file(output_file, "\n"); write_tabs(output_file, 1); write_to_file(output_file, $3);}
+  | LineAtribution {}
   ;
 LineIdentation:
-  LineIf
+  MULTIPLE_TABS LineIf { calculate_tabs($1); $$ = $2; }
   | LineFor
   | LineFunction
   ;
 LineIf:
-  IF LineOperator TWO_POINTS { return_conditional_line($2, 0); }
-  | IF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { return_conditional_line($3, 1); }
+  IF LineOperator TWO_POINTS { strcat($$, " "); strcat($$, $2); strcat($$, ":"); }
+  | IF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { strcat($$, " ("); strcat($$, $3); strcat($$, "):"); }
   | ELIF LineOperator TWO_POINTS { return_conditional_line($2, 2); }
   | ELIF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { return_conditional_line($3, 3); }
   | ELSE TWO_POINTS { return_conditional_line("", 4); }
@@ -193,8 +219,8 @@ LineFor:
   FOR VARIABLE IN VARIABLE TWO_POINTS {}
   ;
 LineAtribution:
-  VARIABLE EQUALS VARIABLE { write_atribution_line(output_file, $1, $3);}
-  | VARIABLE EQUALS LineFunction {write_atribution_line(output_file, $1, $3); }
+  VARIABLE EQUALS VARIABLE { strcat($$, " = "); strcat($$, $3); }
+  | VARIABLE EQUALS LineFunction { return_atribution_line($1, $3); }
   | VARIABLE EQUALS VARIABLE DOT FunctionParameters LineFunction
   ;
 LineFunction:
