@@ -162,7 +162,7 @@ void write_tabs(FILE* file, int inside_block) {
 }
 
 %token <strval> FROM VARIABLE IMPORT CLASS FUNCTION_DECORATOR LINE_START_FUNCTION END IF EQUALS MAJOR MINUS MAJOR_EQUALS MINUS_EQUALS MULTIPLE_TABS
-%token <strval> EQUALS_EQUALS ELIF ELSE FOR IN ADD_AND ADD SUB MULT DIV MODULUS EXP COMMA LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS DOT
+%token <strval> EQUALS_EQUALS ELIF ELSE FOR IN ADD_AND ADD SUB MULT DIV MODULUS EXP COMMA LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS DOT DEF
 %token <dval> NUMBER
 %token END_OF_FILE MULTIPLE_BLANK_LINES
 
@@ -183,13 +183,8 @@ MultipleLine:
   | LineImport END { write_to_file(output_file, "\n"); }
   | LineImport END END { write_to_file(output_file, "\n\n\n"); } LineClass 
   | LineImport MULTIPLE_BLANK_LINES { write_to_file(output_file, "\n\n\n"); } LineClass
-  | LineStartFunction {write_to_file(output_file, "\n\t\t");}
-  | CodeBlock { }
+  | CodeBlock
   | END { write_to_file(output_file, "\n");}
-  ;
-LineStartFunction:
-  END MULTIPLE_TABS LINE_START_FUNCTION END { write_body_fuction(output_file, $3); }
-  | END MULTIPLE_TABS FUNCTION_DECORATOR END END MULTIPLE_TABS LINE_START_FUNCTION { write_body_decorator(output_file, $3, $7);}
   ;
 LineImport:
   IMPORT VARIABLE { write_body_import(output_file, $2);  }
@@ -200,23 +195,29 @@ LineClass:
   | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
   ;
 CodeBlock:
-  LineIdentation END CodeBlock {  write_tabs(output_file, 0); write_to_file(output_file, $1); write_to_file(output_file, "\n"); write_tabs(output_file, 1); write_to_file(output_file, $3);}
-  | LineAtribution {}
+  LineIdentation END CodeBlock { write_tabs(output_file, 0); write_to_file(output_file, $1); write_to_file(output_file, "\n"); write_tabs(output_file, 1); write_to_file(output_file, $3);}
+  | MULTIPLE_TABS LineAtribution { $$ = $2; }
   ;
 LineIdentation:
   MULTIPLE_TABS LineIf { calculate_tabs($1); $$ = $2; }
-  | LineFor
-  | LineFunction
+  | MULTIPLE_TABS LineFor { calculate_tabs($1); $$ = $2; }
+  | MULTIPLE_TABS LineStartFunction { calculate_tabs($1); $$ = $2; }
   ;
 LineIf:
   IF LineOperator TWO_POINTS { strcat($$, " "); strcat($$, $2); strcat($$, ":"); }
   | IF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { strcat($$, " ("); strcat($$, $3); strcat($$, "):"); }
-  | ELIF LineOperator TWO_POINTS { return_conditional_line($2, 2); }
-  | ELIF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { return_conditional_line($3, 3); }
-  | ELSE TWO_POINTS { return_conditional_line("", 4); }
+  | ELIF LineOperator TWO_POINTS { strcat($$, " "); strcat($$, $2); strcat($$, ":"); }
+  | ELIF LEFT_PARENTHESES LineOperator RIGHT_PARENTHESES TWO_POINTS { strcat($$, " ("); strcat($$, $3); strcat($$, "):"); }
+  | ELSE TWO_POINTS { strcat($$, ":"); }
   ;
 LineFor:
-  FOR VARIABLE IN VARIABLE TWO_POINTS {}
+  FOR VARIABLE IN VARIABLE TWO_POINTS { strcat($$, " "); strcat($$, $2); strcat($$, ":"); }
+  ;
+LineStartFunction:
+  FUNCTION_DECORATOR END DEF VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES TWO_POINTS { $$ = $1; }
+  | FUNCTION_DECORATOR END END DEF VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES TWO_POINTS { $$ = $1; }
+  | FUNCTION_DECORATOR MULTIPLE_BLANK_LINES DEF VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES TWO_POINTS { $$ = $1; }
+  | DEF VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES TWO_POINTS { $$ = $1; }
   ;
 LineAtribution:
   VARIABLE EQUALS VARIABLE { strcat($$, " = "); strcat($$, $3); }
@@ -224,11 +225,11 @@ LineAtribution:
   | VARIABLE EQUALS VARIABLE DOT FunctionParameters LineFunction
   ;
 LineFunction:
-  VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES {strcat($$, $3); strcat($$, $4); *$3 = '\0'; strcat($3, "(");}
+  VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES { strcat($$, $3); strcat($$, $4); *$3 = '\0'; strcat($3, "(");}
   ;
 FunctionParameters:
   {}
-  | FunctionParameters Parameters {strrep(strcat($$, $2), ':', '(');}
+  | FunctionParameters Parameters { strrep(strcat($$, $2), ':', '(');}
   ;
 Parameters:
   VARIABLE

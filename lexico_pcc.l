@@ -6,7 +6,7 @@
 
 %option noyywrap
 
-white [ \t]+
+white [ ]+
 digit [0-9]
 integer {digit}+
 exponant [eE][+-]?{integer}
@@ -17,8 +17,8 @@ function_decorator ([@][a-z]+)
 multiple_tabs ([\t]*)
 word ([a-zA-Z]+)
 space [ ]
-line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
-	
+line_start_function ((def){space}{variable}[\(]?[[[a-zA-Z_][a-zA-Z0-9_]*]*[ ]*[\,]*]*[\)]?\:)
+
 %%
 
 <<EOF>> { return (END_OF_FILE);}
@@ -34,6 +34,7 @@ line_start_function ((def){space}{word}\([{word}{space}\,]*\)\:)
 "else" {yylval.strval = strdup(yytext); return(ELSE);}
 "for" {yylval.strval = strdup(yytext); return(FOR);}
 "in" {yylval.strval = strdup(yytext); return(IN);}
+"def" {yylval.strval = strdup(yytext); return(DEF);}
 {variable} {yylval.strval = strdup(yytext); return(VARIABLE);}
 {real} {yylval.dval = atof(yytext); return(NUMBER);}
 {multiple_blank_lines} {return(MULTIPLE_BLANK_LINES);}
