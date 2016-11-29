@@ -192,7 +192,8 @@ LineImport:
   ;
 LineClass:
   CLASS VARIABLE LEFT_PARENTHESES RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, "");  }
-  | CLASS VARIABLE LEFT_PARENTHESES VARIABLE RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
+  | CLASS VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES TWO_POINTS { write_body_class(output_file, $2, $4);  }
+  | CLASS VARIABLE TWO_POINTS { write_body_class(output_file, $2, "");  }
   ;
 CodeBlock:
   LineIdentation END CodeBlock { write_tabs(output_file, 0); write_to_file(output_file, $1); write_to_file(output_file, "\n"); write_tabs(output_file, 1); write_to_file(output_file, $3);}
@@ -225,7 +226,7 @@ LineAtribution:
   | VARIABLE EQUALS VARIABLE DOT FunctionParameters LineFunction
   ;
 LineFunction:
-  VARIABLE LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES { strcat($$, $3); strcat($$, $4); *$3 = '\0'; strcat($3, "(");}
+  FunctionParameters LEFT_PARENTHESES FunctionParameters RIGHT_PARENTHESES { strcat($$, $3); strcat($$, $4); *$3 = '\0'; strcat($3, "(");}
   ;
 FunctionParameters:
   {}
