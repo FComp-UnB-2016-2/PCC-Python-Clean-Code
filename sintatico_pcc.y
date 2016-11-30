@@ -8,6 +8,7 @@
 FILE* output_file = NULL;
 int number_identation;
 int beginning_block = 1;
+char * output_file_name[100];
 
 void open_output_file(char* file_name) {
     if (!output_file) {
@@ -237,7 +238,7 @@ void finish_code_block()
 %%
 
 Input:
-  { open_output_file("saida"); }
+  { open_output_file(output_file_name); }
   | Input MultipleLine { }
   ;
 
@@ -343,6 +344,12 @@ int yyerror(char *s) {
    printf("%s\n",s);
 }
 
-int main(void) {
-   yyparse();
+int main( int argc, char *argv[ ] ){
+  if(argc == 2){
+    strcpy(output_file_name, argv[1]);
+  } else{
+    printf("\nInforme o nome do arquivo de saída!!!\n\n");
+  }
+
+  yyparse();
 }

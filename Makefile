@@ -4,7 +4,7 @@ pcc: lexico_pcc.l sintatico_pcc.y
 	mv sintatico_pcc.tab.c sintatico.c
 	flex lexico_pcc.l
 	mv lex.yy.c lexico.c
-	gcc -o pcc sintatico.c lexico.c
+	gcc -o pcc sintatico.c lexico.c -w
 
 clean:
-	rm lexico.* sintatico.* pcc saida.txt
+	rm lexico.* sintatico.* pcc tabs.txt
