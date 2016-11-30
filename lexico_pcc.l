@@ -26,6 +26,7 @@ line_start_function ((def){space}{variable}[\(]?[[[a-zA-Z_][a-zA-Z0-9_]*]*[ ]*[\
 {multiple_tabs} {yylval.strval = strdup(yytext); return(MULTIPLE_TABS);}
 {white} { /* We ignore white characters */ }
 {function_decorator} {yylval.strval = strdup(yytext); return(FUNCTION_DECORATOR);}
+"return" { yylval.strval = strdup(yytext); return(RETURN);}
 "from" { yylval.strval = strdup(yytext); return(FROM);}
 "import" { yylval.strval = strdup(yytext); return(IMPORT);}
 "class" { yylval.strval = strdup(yytext); return(CLASS);}
